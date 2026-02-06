@@ -18,33 +18,34 @@ type Props = {
 export function ProductCard({ product, onSelect, onEdit, onDelete, showActions = false }: Props) {
   return (
     <Card
-      className={`overflow-visible ${onSelect ? "hover-elevate active-elevate-2 cursor-pointer" : ""}`}
+      className={`overflow-visible group ${onSelect ? "hover-elevate active-elevate-2 cursor-pointer" : ""}`}
       onClick={() => onSelect?.(product)}
       data-testid={`card-product-${product.id}`}
     >
       <CardContent className="p-0">
         <div className="flex items-center gap-3 p-3">
-          <div className="w-12 h-12 rounded-md bg-muted flex items-center justify-center flex-shrink-0 overflow-hidden">
+          <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-orange-100 to-amber-50 dark:from-orange-900/30 dark:to-amber-900/20 flex items-center justify-center flex-shrink-0 overflow-hidden">
             {product.imageUrl ? (
               <img
                 src={product.imageUrl}
                 alt={product.name}
-                className="w-full h-full object-cover rounded-md"
+                className="w-full h-full object-cover rounded-lg"
               />
             ) : (
-              <Package className="w-5 h-5 text-muted-foreground" />
+              <Package className="w-5 h-5 text-orange-500 dark:text-orange-400" />
             )}
           </div>
           <div className="flex-1 min-w-0">
-            <div className="font-medium text-sm truncate" data-testid={`text-product-name-${product.id}`}>
+            <div className="font-semibold text-sm truncate" data-testid={`text-product-name-${product.id}`}>
               {product.name}
             </div>
-            <div className="text-sm text-muted-foreground" data-testid={`text-product-price-${product.id}`}>
-              {formatIQD(product.pricePerKg)} IQD / KG
+            <div className="text-sm text-muted-foreground mt-0.5" data-testid={`text-product-price-${product.id}`}>
+              <span className="font-medium text-orange-600 dark:text-orange-400">{formatIQD(product.pricePerKg)}</span>
+              <span className="ml-1">IQD / KG</span>
             </div>
           </div>
           {showActions && (
-            <div className="flex items-center gap-1 flex-shrink-0">
+            <div className="flex items-center gap-1 flex-shrink-0 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-opacity">
               <Button
                 size="icon"
                 variant="ghost"

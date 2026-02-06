@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, ShoppingBasket, Trash2, Send, Search, Package, X } from "lucide-react";
+import { Plus, ShoppingBasket, Send, Search, Package, X } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -124,10 +124,13 @@ export default function SenderPage() {
   const basketTotal = basket.reduce((sum, item) => sum + item.paidAmount, 0);
 
   return (
-    <div className="flex flex-col lg:flex-row gap-4 h-full">
+    <div className="flex flex-col lg:flex-row gap-6 h-full">
       <div className="flex-1 flex flex-col min-w-0">
-        <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
-          <h2 className="text-lg font-semibold flex-shrink-0">Products</h2>
+        <div className="flex items-center justify-between gap-3 mb-5 flex-wrap">
+          <div>
+            <h2 className="text-lg font-bold tracking-tight">Products</h2>
+            <p className="text-xs text-muted-foreground mt-0.5">{products.length} items available</p>
+          </div>
           <div className="flex items-center gap-2 flex-1 justify-end">
             <div className="relative max-w-xs flex-1">
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -148,13 +151,26 @@ export default function SenderPage() {
         {isLoading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {Array.from({ length: 6 }).map((_, i) => (
-              <Card key={i}><CardContent className="p-3"><div className="flex gap-3"><Skeleton className="w-12 h-12 rounded-md" /><div className="flex-1 space-y-2"><Skeleton className="h-4 w-3/4" /><Skeleton className="h-3 w-1/2" /></div></div></CardContent></Card>
+              <Card key={i}>
+                <CardContent className="p-3">
+                  <div className="flex gap-3">
+                    <Skeleton className="w-12 h-12 rounded-lg" />
+                    <div className="flex-1 space-y-2">
+                      <Skeleton className="h-4 w-3/4" />
+                      <Skeleton className="h-3 w-1/2" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             ))}
           </div>
         ) : filteredProducts.length === 0 ? (
-          <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground py-12">
-            <Package className="w-10 h-10 mb-3" />
-            <p className="text-sm">{search ? "No products match your search" : "No products yet. Add your first product."}</p>
+          <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground py-16">
+            <div className="w-14 h-14 rounded-2xl bg-orange-100 dark:bg-orange-900/20 flex items-center justify-center mb-4">
+              <Package className="w-7 h-7 text-orange-400" />
+            </div>
+            <p className="text-sm font-medium">{search ? "No products match your search" : "No products yet"}</p>
+            <p className="text-xs mt-1">{search ? "Try a different search term" : "Add your first product to get started"}</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 overflow-auto flex-1">
@@ -173,13 +189,15 @@ export default function SenderPage() {
       </div>
 
       <div className="lg:w-80 xl:w-96 flex-shrink-0">
-        <Card className="sticky top-0">
+        <Card className="sticky top-16">
           <CardHeader className="flex flex-row items-center justify-between gap-2 pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <ShoppingBasket className="w-4 h-4" />
+            <CardTitle className="text-sm font-bold flex items-center gap-2">
+              <div className="w-6 h-6 rounded-md bg-orange-500/10 flex items-center justify-center">
+                <ShoppingBasket className="w-3.5 h-3.5 text-orange-600 dark:text-orange-400" />
+              </div>
               Basket
               {basket.length > 0 && (
-                <Badge variant="secondary">{basket.length}</Badge>
+                <Badge variant="default" className="ml-1">{basket.length}</Badge>
               )}
             </CardTitle>
             {basket.length > 0 && (
@@ -190,23 +208,22 @@ export default function SenderPage() {
           </CardHeader>
           <CardContent className="space-y-3 pt-0">
             {basket.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                <ShoppingBasket className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                <p className="text-sm">Basket is empty</p>
-                <p className="text-xs">Select a product to get started</p>
+              <div className="text-center py-10 text-muted-foreground">
+                <div className="w-12 h-12 rounded-2xl bg-muted/60 flex items-center justify-center mx-auto mb-3">
+                  <ShoppingBasket className="w-6 h-6 opacity-40" />
+                </div>
+                <p className="text-sm font-medium">Basket is empty</p>
+                <p className="text-xs mt-1">Select a product to get started</p>
               </div>
             ) : (
               <>
                 <div className="space-y-2 max-h-[40vh] overflow-auto">
                   {basket.map((item, i) => (
-                    <div key={i} className="flex items-start gap-2 p-2 rounded-md bg-muted/40" data-testid={`basket-item-${i}`}>
+                    <div key={i} className="flex items-start gap-2 p-2.5 rounded-lg bg-muted/40" data-testid={`basket-item-${i}`}>
                       <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium truncate">{item.productName}</div>
-                        <div className="text-xs text-muted-foreground">
-                          {formatIQD(item.pricePerKg)} IQD/KG
-                        </div>
+                        <div className="text-sm font-semibold truncate">{item.productName}</div>
                         <div className="flex items-center gap-3 mt-1">
-                          <span className="text-xs">{formatIQD(item.paidAmount)} IQD</span>
+                          <span className="text-xs font-medium text-orange-600 dark:text-orange-400">{formatIQD(item.paidAmount)} IQD</span>
                           <span className="text-xs text-muted-foreground">{item.weightKg.toFixed(3)} KG</span>
                         </div>
                       </div>
@@ -217,10 +234,10 @@ export default function SenderPage() {
                   ))}
                 </div>
 
-                <div className="border-t pt-3 space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Total</span>
-                    <span className="font-semibold" data-testid="text-basket-total">{formatIQD(basketTotal)} IQD</span>
+                <div className="border-t pt-3 space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Total</span>
+                    <span className="text-lg font-bold text-orange-600 dark:text-orange-400" data-testid="text-basket-total">{formatIQD(basketTotal)} IQD</span>
                   </div>
                   <Button
                     className="w-full"

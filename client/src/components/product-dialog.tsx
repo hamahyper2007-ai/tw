@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, Upload, X } from "lucide-react";
+import { Loader2, Upload, X, ImagePlus } from "lucide-react";
 import type { Product } from "@shared/schema";
 
 type Props = {
@@ -53,11 +53,11 @@ export function ProductDialog({ open, onOpenChange, product, onSave, isPending }
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{product ? "Edit Product" : "Add Product"}</DialogTitle>
+          <DialogTitle className="text-base font-bold">{product ? "Edit Product" : "Add Product"}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="product-name">Product Name</Label>
+            <Label htmlFor="product-name" className="text-xs text-muted-foreground">Product Name</Label>
             <Input
               id="product-name"
               value={name}
@@ -67,7 +67,7 @@ export function ProductDialog({ open, onOpenChange, product, onSave, isPending }
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="product-price">Price per KG (IQD)</Label>
+            <Label htmlFor="product-price" className="text-xs text-muted-foreground">Price per KG (IQD)</Label>
             <Input
               id="product-price"
               value={price}
@@ -77,14 +77,14 @@ export function ProductDialog({ open, onOpenChange, product, onSave, isPending }
             />
           </div>
           <div className="space-y-2">
-            <Label>Image</Label>
+            <Label className="text-xs text-muted-foreground">Image</Label>
             <div className="flex items-center gap-3">
               {imagePreview && !removeImage ? (
-                <div className="relative w-16 h-16 rounded-md overflow-hidden bg-muted flex-shrink-0">
+                <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-muted flex-shrink-0">
                   <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
                   <button
                     type="button"
-                    className="absolute top-0 right-0 p-0.5 bg-background/80 rounded-bl"
+                    className="absolute top-0.5 right-0.5 p-0.5 bg-background/80 rounded-md"
                     onClick={() => { setImageFile(null); setImagePreview(null); setRemoveImage(true); }}
                   >
                     <X className="w-3 h-3" />
@@ -92,8 +92,8 @@ export function ProductDialog({ open, onOpenChange, product, onSave, isPending }
                 </div>
               ) : null}
               <label className="flex-1">
-                <div className="flex items-center justify-center gap-2 border border-dashed rounded-md p-3 cursor-pointer hover-elevate text-sm text-muted-foreground">
-                  <Upload className="w-4 h-4" />
+                <div className="flex items-center justify-center gap-2 border border-dashed rounded-lg p-4 cursor-pointer hover-elevate text-sm text-muted-foreground">
+                  <ImagePlus className="w-4 h-4" />
                   <span>{imagePreview && !removeImage ? "Change image" : "Upload image"}</span>
                 </div>
                 <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} data-testid="input-product-image" />
