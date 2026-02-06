@@ -130,7 +130,7 @@ export async function registerRoutes(
   });
 
   app.patch("/api/products/:id", requireAuth, upload.single("image"), async (req, res) => {
-    const id = parseInt(req.params.id, 10);
+    const id = parseInt(req.params.id as string, 10);
     const { name, pricePerKg, removeImage } = req.body;
     const updateData: any = {};
     if (name) updateData.name = name;
@@ -146,7 +146,7 @@ export async function registerRoutes(
   });
 
   app.delete("/api/products/:id", requireAuth, async (req, res) => {
-    const id = parseInt(req.params.id, 10);
+    const id = parseInt(req.params.id as string, 10);
     await storage.deleteProduct(id);
     res.json({ ok: true });
   });
@@ -168,7 +168,7 @@ export async function registerRoutes(
   });
 
   app.patch("/api/orders/:id", requireAuth, async (req, res) => {
-    const id = parseInt(req.params.id, 10);
+    const id = parseInt(req.params.id as string, 10);
     const { status } = req.body;
     if (!status) {
       return res.status(400).json({ message: "Status required" });
