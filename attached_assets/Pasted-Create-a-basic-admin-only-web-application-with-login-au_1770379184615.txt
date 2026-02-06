@@ -1,0 +1,144 @@
+Create a basic admin-only web application with login authentication and a shared database that works across multiple devices.
+
+1. Login System
+	•	Login page with 3 demo accounts (clickable):
+	•	Sender
+	•	Receiver
+	•	Admin
+	•	No public access, admins only.
+
+⸻
+
+2. Sender Account (Selling by KG)
+
+The sender sells items by kilogram.
+
+Product System
+	•	Each item has:
+	•	Name
+	•	Price per 1 KG (IQD)
+	•	Image (uploadable)
+	•	Ability to:
+	•	Add new items
+	•	Edit prices
+	•	Edit names
+	•	Change images
+	•	Delete items
+
+Items & Prices (IQD / KG):
+	•	Fstq akbary – 18,500
+	•	Noky irany brzhaw – 4,000
+	•	Mewzh ozbaki – 8,000
+	•	Tekalay charas – 14,000
+	•	Gulla barozha – 4,500
+	•	Tekala taybat – 18,000
+	•	Ganma shami – 4,500
+	•	Muqarmsh – 4,250
+	•	Kolaka kam xwe – 7,000
+	•	Gwez sax – 6,000
+	•	Alibaba sada – 4,500
+	•	Badam swer – 14,000
+	•	Fstq ahmady – 16,500
+	•	Kolakay spi – 7,500
+	•	Gazo sada – 15,500
+
+KG Calculation Logic
+	•	When selecting a product:
+	•	User enters amount in IQD
+	•	System calculates exact KG
+	•	Example:
+	•	Gulla barozha = 4,500 IQD / KG
+	•	User enters 1,000 IQD
+	•	Result: 0.222 KG
+
+Basket System
+	•	Selected items go into a basket
+	•	Basket shows:
+	•	Item name
+	•	Price per KG
+	•	Paid amount
+	•	Calculated KG
+	•	Button: Continue Purchase
+	•	Order is sent to Receiver instantly
+
+⸻
+
+3. Receiver Account
+	•	Sees incoming orders in real-time
+	•	Clear layout showing:
+	•	Items
+	•	KG
+	•	Prices
+	•	Total
+	•	Ability to:
+	•	Mark order as Finished / Completed
+
+⸻
+
+4. Admin Account
+	•	Full access dashboard:
+	•	Total sales
+	•	Total profit
+	•	Orders history
+	•	Items sold by KG
+	•	Revenue statistics
+	•	Read-only for orders (cannot edit past orders)
+
+⸻
+
+5. Database & Tech Requirements
+	•	Persistent database (orders, items, prices, images)
+	•	Sync across multiple devices
+	•	Data must not reset on refresh
+	•	Simple, clean UI (not public-facing, admin-focused)
+
+
+🔁 Dual Input System (IQD ↔ KG)
+
+When selecting any product, the system must provide two calculation modes:
+
+1️⃣ By IQD (Price-Based)
+	•	User selects “By IQD”
+	•	User enters the amount in IQD
+	•	System automatically calculates the exact KG
+	•	Example:
+	•	Price: 4,500 IQD / KG
+	•	Entered: 1,000 IQD
+	•	Output: 0.222 KG
+	•	Result is added to basket
+
+⸻
+
+2️⃣ By KG (Weight-Based)
+	•	User selects “By KG”
+	•	User enters weight (e.g. 0.25kg, 0.5kg, 1kg)
+	•	System automatically calculates the price in IQD
+	•	Result is added to basket
+
+⸻
+
+💰 IQD Rounding & Payment Suggestion Logic
+
+Because customers cannot pay small irregular amounts:
+	•	Valid payment steps:
+	•	250 / 500 / 750 / 1,000 / 1,250 / 1,500 / etc
+	•	When user enters KG and the calculated price is not payable:
+	•	System shows smart suggestions
+	•	Suggests the closest valid IQD amount
+	•	Shows adjusted KG automatically
+
+Example:
+	•	Entered weight: 0.230 KG
+	•	Calculated price: 1,195 IQD
+	•	System suggests:
+	•	1,000 IQD → adjusted KG
+	•	1,250 IQD → adjusted KG
+	•	User selects one option to proceed
+
+⸻
+
+🔗 Bi-Directional Sync
+	•	Changing IQD updates KG
+	•	Changing KG updates IQD
+	•	Suggestions update in real-time
+	•	Basket always reflects the final confirmed values
