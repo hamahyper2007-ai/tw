@@ -149,15 +149,15 @@ export default function SenderPage() {
         </div>
 
         {isLoading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {Array.from({ length: 6 }).map((_, i) => (
               <Card key={i}>
-                <CardContent className="p-3">
-                  <div className="flex gap-3">
-                    <Skeleton className="w-12 h-12 rounded-lg" />
-                    <div className="flex-1 space-y-2">
-                      <Skeleton className="h-4 w-3/4" />
-                      <Skeleton className="h-3 w-1/2" />
+                <CardContent className="p-4">
+                  <div className="flex gap-4">
+                    <Skeleton className="w-20 h-20 rounded-xl" />
+                    <div className="flex-1 space-y-3">
+                      <Skeleton className="h-5 w-3/4" />
+                      <Skeleton className="h-4 w-1/2" />
                     </div>
                   </div>
                 </CardContent>
@@ -173,7 +173,7 @@ export default function SenderPage() {
             <p className="text-xs mt-1">{search ? "Try a different search term" : "Add your first product to get started"}</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 overflow-auto flex-1">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 overflow-auto flex-1">
             {filteredProducts.map((product) => (
               <ProductCard
                 key={product.id}
