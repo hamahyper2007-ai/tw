@@ -2,31 +2,9 @@ import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import session from "express-session";
-import multer from "multer";
-import path from "path";
-import fs from "fs";
 import { storage } from "./storage";
 import { log } from "./index";
-
-const uploadsDir = path.join(process.cwd(), "uploads");
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
-
-const upload = multer({
-  storage: multer.diskStorage({
-    destination: uploadsDir,
-    filename: (_req, file, cb) => {
-      const ext = path.extname(file.originalname);
-      cb(null, `${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`);
-    },
-  }),
-  limits: { fileSize: 5 * 1024 * 1024 },
-  fileFilter: (_req, file, cb) => {
-    if (file.mimetype.startsWith("image/")) cb(null, true);
-    else cb(new Error("Only images allowed"));
-  },
-});
+import { registerObjectStorageRoutes } from "./replit_integrations/object_storage";
 
 declare module "express-session" {
   interface SessionData {
@@ -69,14 +47,7 @@ export async function registerRoutes(
 
   app.use(sessionMiddleware);
 
-  app.use("/uploads", (req, res, next) => {
-    const filePath = path.join(uploadsDir, path.basename(req.path));
-    if (fs.existsSync(filePath)) {
-      res.sendFile(filePath);
-    } else {
-      res.status(404).send("Not found");
-    }
-  });
+  registerObjectStorageRoutes(app);
 
   // Auth routes
   app.post("/api/auth/login", async (req, res) => {
@@ -115,28 +86,27 @@ export async function registerRoutes(
     res.json(products);
   });
 
-  app.post("/api/products", requireAuth, upload.single("image"), async (req, res) => {
-    const { name, pricePerKg } = req.body;
+  app.post("/api/products", requireAuth, async (req, res) => {
+    const { name, pricePerKg, imageUrl } = req.body;
     if (!name || !pricePerKg) {
       return res.status(400).json({ message: "Name and price required" });
     }
-    const imageUrl = req.file ? `/uploads/${req.file.filename}` : null;
     const product = await storage.createProduct({
       name,
       pricePerKg: parseInt(pricePerKg, 10),
-      imageUrl,
+      imageUrl: imageUrl || null,
     });
     res.json(product);
   });
 
-  app.patch("/api/products/:id", requireAuth, upload.single("image"), async (req, res) => {
+  app.patch("/api/products/:id", requireAuth, async (req, res) => {
     const id = parseInt(req.params.id as string, 10);
-    const { name, pricePerKg, removeImage } = req.body;
+    const { name, pricePerKg, imageUrl, removeImage } = req.body;
     const updateData: any = {};
     if (name) updateData.name = name;
     if (pricePerKg) updateData.pricePerKg = parseInt(pricePerKg, 10);
-    if (req.file) updateData.imageUrl = `/uploads/${req.file.filename}`;
-    if (removeImage === "true") updateData.imageUrl = null;
+    if (imageUrl) updateData.imageUrl = imageUrl;
+    if (removeImage === true) updateData.imageUrl = null;
 
     const product = await storage.updateProduct(id, updateData);
     if (!product) {

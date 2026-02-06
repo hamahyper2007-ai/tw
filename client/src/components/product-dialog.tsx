@@ -3,42 +3,77 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, Upload, X, ImagePlus } from "lucide-react";
+import { Loader2, X, ImagePlus } from "lucide-react";
 import type { Product } from "@shared/schema";
 
 type Props = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   product?: Product | null;
-  onSave: (data: { name: string; pricePerKg: number; imageFile?: File | null; removeImage?: boolean }) => Promise<void>;
+  onSave: (data: { name: string; pricePerKg: number; imageUrl?: string | null; removeImage?: boolean }) => Promise<void>;
   isPending: boolean;
 };
+
+async function uploadImageToStorage(file: File): Promise<string> {
+  const res = await fetch("/api/uploads/request-url", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      name: file.name,
+      size: file.size,
+      contentType: file.type,
+    }),
+  });
+  if (!res.ok) throw new Error("Failed to get upload URL");
+  const { uploadURL, objectPath } = await res.json();
+
+  const uploadRes = await fetch(uploadURL, {
+    method: "PUT",
+    body: file,
+    headers: { "Content-Type": file.type },
+  });
+  if (!uploadRes.ok) throw new Error("Failed to upload file");
+
+  return objectPath;
+}
 
 export function ProductDialog({ open, onOpenChange, product, onSave, isPending }: Props) {
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
-  const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null);
   const [removeImage, setRemoveImage] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
     if (open) {
       setName(product?.name || "");
       setPrice(product?.pricePerKg?.toString() || "");
-      setImageFile(null);
       setImagePreview(product?.imageUrl || null);
+      setUploadedImageUrl(null);
       setRemoveImage(false);
+      setIsUploading(false);
     }
   }, [open, product]);
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      setImageFile(file);
-      setRemoveImage(false);
-      const reader = new FileReader();
-      reader.onload = () => setImagePreview(reader.result as string);
-      reader.readAsDataURL(file);
+    if (!file) return;
+
+    setRemoveImage(false);
+    const reader = new FileReader();
+    reader.onload = () => setImagePreview(reader.result as string);
+    reader.readAsDataURL(file);
+
+    setIsUploading(true);
+    try {
+      const objectPath = await uploadImageToStorage(file);
+      setUploadedImageUrl(objectPath);
+    } catch (err) {
+      console.error("Image upload failed:", err);
+      setImagePreview(null);
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -46,7 +81,12 @@ export function ProductDialog({ open, onOpenChange, product, onSave, isPending }
     e.preventDefault();
     const priceNum = parseInt(price.replace(/,/g, ""), 10);
     if (!name.trim() || isNaN(priceNum) || priceNum <= 0) return;
-    await onSave({ name: name.trim(), pricePerKg: priceNum, imageFile, removeImage });
+    await onSave({
+      name: name.trim(),
+      pricePerKg: priceNum,
+      imageUrl: uploadedImageUrl || undefined,
+      removeImage,
+    });
   };
 
   return (
@@ -85,7 +125,7 @@ export function ProductDialog({ open, onOpenChange, product, onSave, isPending }
                   <button
                     type="button"
                     className="absolute top-0.5 right-0.5 p-0.5 bg-background/80 rounded-md"
-                    onClick={() => { setImageFile(null); setImagePreview(null); setRemoveImage(true); }}
+                    onClick={() => { setUploadedImageUrl(null); setImagePreview(null); setRemoveImage(true); }}
                   >
                     <X className="w-3 h-3" />
                   </button>
@@ -93,10 +133,19 @@ export function ProductDialog({ open, onOpenChange, product, onSave, isPending }
               ) : null}
               <label className="flex-1">
                 <div className="flex items-center justify-center gap-2 border border-dashed rounded-lg p-4 cursor-pointer hover-elevate text-sm text-muted-foreground">
-                  <ImagePlus className="w-4 h-4" />
-                  <span>{imagePreview && !removeImage ? "Change image" : "Upload image"}</span>
+                  {isUploading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Uploading...</span>
+                    </>
+                  ) : (
+                    <>
+                      <ImagePlus className="w-4 h-4" />
+                      <span>{imagePreview && !removeImage ? "Change image" : "Upload image"}</span>
+                    </>
+                  )}
                 </div>
-                <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} data-testid="input-product-image" />
+                <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} disabled={isUploading} data-testid="input-product-image" />
               </label>
             </div>
           </div>
@@ -104,7 +153,7 @@ export function ProductDialog({ open, onOpenChange, product, onSave, isPending }
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} data-testid="button-cancel-product">
               Cancel
             </Button>
-            <Button type="submit" disabled={isPending || !name.trim() || !price} data-testid="button-save-product">
+            <Button type="submit" disabled={isPending || isUploading || !name.trim() || !price} data-testid="button-save-product">
               {isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               {product ? "Update" : "Add"}
             </Button>

@@ -42,9 +42,8 @@ export default function SenderPage() {
   });
 
   const createProductMutation = useMutation({
-    mutationFn: async (formData: FormData) => {
-      const res = await fetch("/api/products", { method: "POST", body: formData, credentials: "include" });
-      if (!res.ok) throw new Error(await res.text());
+    mutationFn: async (data: { name: string; pricePerKg: number; imageUrl?: string | null }) => {
+      const res = await apiRequest("POST", "/api/products", data);
       return res.json();
     },
     onSuccess: () => {
@@ -55,9 +54,8 @@ export default function SenderPage() {
   });
 
   const updateProductMutation = useMutation({
-    mutationFn: async ({ id, formData }: { id: number; formData: FormData }) => {
-      const res = await fetch(`/api/products/${id}`, { method: "PATCH", body: formData, credentials: "include" });
-      if (!res.ok) throw new Error(await res.text());
+    mutationFn: async ({ id, data }: { id: number; data: any }) => {
+      const res = await apiRequest("PATCH", `/api/products/${id}`, data);
       return res.json();
     },
     onSuccess: () => {
@@ -90,17 +88,15 @@ export default function SenderPage() {
     },
   });
 
-  const handleSaveProduct = async (data: { name: string; pricePerKg: number; imageFile?: File | null; removeImage?: boolean }) => {
-    const formData = new FormData();
-    formData.append("name", data.name);
-    formData.append("pricePerKg", data.pricePerKg.toString());
-    if (data.imageFile) formData.append("image", data.imageFile);
-    if (data.removeImage) formData.append("removeImage", "true");
+  const handleSaveProduct = async (data: { name: string; pricePerKg: number; imageUrl?: string | null; removeImage?: boolean }) => {
+    const payload: any = { name: data.name, pricePerKg: data.pricePerKg };
+    if (data.imageUrl) payload.imageUrl = data.imageUrl;
+    if (data.removeImage) payload.removeImage = true;
 
     if (editProduct) {
-      await updateProductMutation.mutateAsync({ id: editProduct.id, formData });
+      await updateProductMutation.mutateAsync({ id: editProduct.id, data: payload });
     } else {
-      await createProductMutation.mutateAsync(formData);
+      await createProductMutation.mutateAsync(payload);
     }
   };
 
@@ -149,16 +145,14 @@ export default function SenderPage() {
         </div>
 
         {isLoading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {Array.from({ length: 6 }).map((_, i) => (
               <Card key={i}>
-                <CardContent className="p-4">
-                  <div className="flex gap-4">
-                    <Skeleton className="w-20 h-20 rounded-xl" />
-                    <div className="flex-1 space-y-3">
-                      <Skeleton className="h-5 w-3/4" />
-                      <Skeleton className="h-4 w-1/2" />
-                    </div>
+                <CardContent className="p-0">
+                  <Skeleton className="aspect-square w-full rounded-t-lg" />
+                  <div className="p-3 space-y-2">
+                    <Skeleton className="h-5 w-3/4" />
+                    <Skeleton className="h-4 w-1/2" />
                   </div>
                 </CardContent>
               </Card>
@@ -173,7 +167,7 @@ export default function SenderPage() {
             <p className="text-xs mt-1">{search ? "Try a different search term" : "Add your first product to get started"}</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 overflow-auto flex-1">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 overflow-auto flex-1">
             {filteredProducts.map((product) => (
               <ProductCard
                 key={product.id}
